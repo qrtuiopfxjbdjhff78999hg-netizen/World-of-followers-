@@ -1,0 +1,30 @@
+-- 1. جدول البيوت (كل بيت فاضي افتراضياً)
+create table houses (
+  id uuid default gen_random_uuid() primary key,
+  owner text unique not null,
+  x float not null,
+  z float not null,
+  floors int default 1 not null,
+  furniture jsonb default '[]'::jsonb not null,
+  created_at timestamp with time zone default now()
+);
+
+-- 2. جدول طلبات الشراء والدفع عبر شام كاش
+create table orders (
+  id uuid default gen_random_uuid() primary key,
+  house_owner text not null,
+  item_type text not null, -- 'furniture' أو 'floor'
+  item_id text not null,
+  item_name text not null,
+  amount_usd numeric not null,
+  tx_reference text not null, -- رقم عملية التحويل في شام كاش
+  status text default 'pending' not null, -- 'pending' | 'approved' | 'rejected'
+  created_at timestamp with time zone default now()
+);
+
+-- تفعيل القراءة والإضافة والتحديث للواجهة
+alter table houses enable row level security;
+alter table orders enable row level security;
+
+create policy "allow_all_houses" on houses for all using (true) with check (true);
+create policy "allow_all_orders" on orders for all using (true) with check (true);
